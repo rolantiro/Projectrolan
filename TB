@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sehat Bersama</title>
+
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Segoe UI,sans-serif;
+}
+
+body{
+background:#f5fffd;
+}
+
+.container{
+max-width:900px;
+margin:auto;
+padding:20px;
+}
+
+.card{
+background:white;
+padding:25px;
+border-radius:15px;
+box-shadow:0 5px 15px rgba(0,0,0,.1);
+margin-top:20px;
+}
+
+h1,h2,h3{
+color:#00897b;
+margin-bottom:15px;
+}
+
+button{
+background:#26a69a;
+color:white;
+border:none;
+padding:12px 20px;
+border-radius:10px;
+cursor:pointer;
+margin:5px;
+}
+
+button:hover{
+background:#00897b;
+}
+
+input,textarea{
+width:100%;
+padding:12px;
+margin-top:10px;
+margin-bottom:10px;
+border:1px solid #ddd;
+border-radius:10px;
+}
+
+.hidden{
+display:none;
+}
+
+.menu{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+gap:15px;
+}
+
+.box{
+background:#e0f7fa;
+padding:20px;
+border-radius:15px;
+text-align:center;
+cursor:pointer;
+}
+
+.chat-box{
+height:250px;
+overflow-y:auto;
+border:1px solid #ddd;
+padding:10px;
+border-radius:10px;
+margin-bottom:10px;
+background:white;
+}
+
+.msg{
+padding:10px;
+margin:5px 0;
+border-radius:10px;
+background:#e0f2f1;
+}
+
+.antrian{
+font-size:50px;
+font-weight:bold;
+color:#00897b;
+text-align:center;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<div id="home" class="card">
+<h1>Selamat Datang</h1>
+<p>Sudah memiliki akun?</p>
+<br>
+<button onclick="showLogin()">Ya, Login</button>
+<button onclick="showRegister()">Belum, Daftar</button>
+</div>
+
+<div id="register" class="card hidden">
+<h2>Daftar Akun</h2>
+
+<input type="text" id="nik" placeholder="NIK (16 Digit)">
+<input type="text" id="bpjs" placeholder="No BPJS (13 Digit)">
+<input type="text" id="telp" placeholder="No Telepon">
+<textarea id="alamat" placeholder="Alamat"></textarea>
+<input type="password" id="password" placeholder="Password">
+
+<button onclick="register()">Daftar</button>
+<button onclick="backHome()">Kembali</button>
+</div>
+
+<div id="login" class="card hidden">
+<h2>Login</h2>
+
+<input type="text" id="loginNik" placeholder="NIK">
+<input type="password" id="loginPassword" placeholder="Password">
+
+<button onclick="login()">Login</button>
+<button onclick="backHome()">Kembali</button>
+</div>
+
+<div id="dashboard" class="card hidden">
+<h2>Dashboard Pasien</h2>
+
+<div class="menu">
+
+<div class="box" onclick="showAntrian()">
+🎟️
+<h3>Ambil Antrian</h3>
+</div>
+
+<div class="box" onclick="showKonsul()">
+💬
+<h3>Konsultasi</h3>
+</div>
+
+<div class="box" onclick="showOAT()">
+💊
+<h3>Pengingat OAT</h3>
+</div>
+
+</div>
+
+<br>
+
+<button onclick="logout()">Logout</button>
+</div>
+
+<div id="antrianPage" class="card hidden">
+<h2>Nomor Antrian</h2>
+
+<div class="antrian" id="nomorAntrian">
+-
+</div>
+
+<button onclick="ambilAntrian()">Ambil Antrian</button>
+<button onclick="kembaliDashboard()">Kembali</button>
+</div>
+
+<div id="konsulPage" class="card hidden">
+<h2>Konsultasi Dokter</h2>
+
+<div class="chat-box" id="chatBox">
+<div class="msg">
+Dokter: Silakan sampaikan keluhan Anda.
+</div>
+</div>
+
+<textarea id="pesan" placeholder="Tulis keluhan Anda..."></textarea>
+
+<button onclick="kirimPesan()">Kirim</button>
+<button onclick="kembaliDashboard()">Kembali</button>
+</div>
+
+<div id="oatPage" class="card hidden">
+<h2>Pengingat OAT</h2>
+
+<p>
+Minum OAT dalam kondisi perut kosong:
+</p>
+
+<ul>
+<li>1 jam sebelum makan</li>
+<li>2 jam setelah makan</li>
+<li>Setiap hari pada jam yang sama</li>
+<li>Selama 6-9 bulan sesuai anjuran dokter</li>
+</ul>
+
+<br>
+
+<input type="time" id="jamObat">
+
+<button onclick="simpanJadwal()">
+Simpan Jadwal
+</button>
+
+<button onclick="kembaliDashboard()">
+Kembali
+</button>
+
+</div>
+
+</div>
+
+<script>
+
+function hideAll(){
+document.querySelectorAll('.card').forEach(x=>{
+x.classList.add('hidden');
+});
+}
+
+function backHome(){
+hideAll();
+home.classList.remove('hidden');
+}
+
+function showRegister(){
+hideAll();
+register.classList.remove('hidden');
+}
+
+function showLogin(){
+hideAll();
+login.classList.remove('hidden');
+}
+
+function register(){
+
+let nik=document.getElementById('nik').value;
+let bpjs=document.getElementById('bpjs').value;
+let telp=document.getElementById('telp').value;
+let alamat=document.getElementById('alamat').value;
+let password=document.getElementById('password').value;
+
+if(nik.length!==16){
+alert("NIK harus 16 digit");
+return;
+}
+
+if(bpjs.length!==13){
+alert("BPJS harus 13 digit");
+return;
+}
+
+let user={
+nik,
+bpjs,
+telp,
+alamat,
+password
+};
+
+localStorage.setItem("user",JSON.stringify(user));
+
+alert("Registrasi berhasil");
+
+showLogin();
+}
+
+function login(){
+
+let user=JSON.parse(localStorage.getItem("user"));
+
+if(!user){
+alert("Silakan daftar terlebih dahulu");
+return;
+}
+
+let nik=document.getElementById('loginNik').value;
+let password=document.getElementById('loginPassword').value;
+
+if(
+nik===user.nik &&
+password===user.password
+){
+hideAll();
+dashboard.classList.remove('hidden');
+}else{
+alert("Login gagal");
+}
+}
+
+function logout(){
+backHome();
+}
+
+function kembaliDashboard(){
+hideAll();
+dashboard.classList.remove('hidden');
+}
+
+function showAntrian(){
+hideAll();
+antrianPage.classList.remove('hidden');
+}
+
+function ambilAntrian(){
+
+let nomor=
+parseInt(localStorage.getItem("antrian")) || 0;
+
+nomor++;
+
+localStorage.setItem("antrian",nomor);
+
+let tampil=
+"T"+String(nomor).padStart(3,'0');
+
+document.getElementById(
+"nomorAntrian"
+).innerHTML=tampil;
+}
+
+function showKonsul(){
+hideAll();
+konsulPage.classList.remove('hidden');
+}
+
+function kirimPesan(){
+
+let pesan=
+document.getElementById('pesan').value;
+
+if(!pesan) return;
+
+let div=document.createElement('div');
+
+div.className='msg';
+
+div.innerHTML=
+"Anda: "+pesan;
+
+chatBox.appendChild(div);
+
+document.getElementById(
+'pesan'
+).value='';
+
+chatBox.scrollTop=
+chatBox.scrollHeight;
+}
+
+function showOAT(){
+hideAll();
+oatPage.classList.remove('hidden');
+}
+
+function simpanJadwal(){
+
+let jam=
+document.getElementById(
+'jamObat'
+).value;
+
+localStorage.setItem(
+'jamOAT',
+jam
+);
+
+alert(
+'Jadwal berhasil disimpan'
+);
+}
+
+if(Notification.permission!=="granted"){
+Notification.requestPermission();
+}
+
+setInterval(()=>{
+
+let jam=
+localStorage.getItem(
+'jamOAT'
+);
+
+if(!jam) return;
+
+let now=new Date();
+
+let sekarang=
+String(now.getHours()).padStart(2,'0')
++":"+
+String(now.getMinutes()).padStart(2,'0');
+
+if(sekarang===jam){
+
+new Notification(
+"Pengingat OAT",
+{
+body:"Saatnya minum OAT hari ini."
+}
+);
+
+}
+
+},60000);
+
+</script>
+
+</body>
+</html>
