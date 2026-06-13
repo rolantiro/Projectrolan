@@ -1,0 +1,464 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);background:var(--color-background-tertiary);color:var(--color-text-primary)}
+.page{display:none;min-height:600px;padding:1.5rem}
+.page.active{display:block}
+.card{background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);padding:1.5rem}
+.header{background:#1D9E75;color:#fff;padding:1rem 1.5rem;display:flex;align-items:center;gap:10px;border-radius:var(--border-radius-lg) var(--border-radius-lg) 0 0}
+.header h1{font-size:16px;font-weight:500}
+.header p{font-size:12px;opacity:0.85}
+.logo-circle{width:40px;height:40px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px}
+.btn{width:100%;padding:11px;border-radius:var(--border-radius-md);border:none;font-size:15px;font-weight:500;cursor:pointer;margin-top:8px;transition:opacity 0.15s}
+.btn-primary{background:#1D9E75;color:#fff}
+.btn-primary:hover{opacity:0.9}
+.btn-outline{background:transparent;color:#1D9E75;border:1.5px solid #1D9E75}
+.btn-outline:hover{background:#E1F5EE}
+.btn-back{background:transparent;color:var(--color-text-secondary);border:0.5px solid var(--color-border-tertiary);width:auto;padding:8px 14px;font-size:13px;border-radius:var(--border-radius-md);cursor:pointer;margin-bottom:1rem}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:13px;color:var(--color-text-secondary);margin-bottom:5px}
+.field input,.field textarea,.field select{width:100%;padding:10px 12px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:14px;background:var(--color-background-primary);color:var(--color-text-primary)}
+.field textarea{resize:none;height:90px}
+.field input:focus,.field textarea:focus{outline:2px solid #1D9E75;border-color:transparent}
+.err{color:#E24B4A;font-size:12px;margin-top:4px;display:none}
+.menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:1rem}
+.menu-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.25rem;text-align:center;cursor:pointer;transition:border-color 0.15s}
+.menu-card:hover{border-color:#1D9E75}
+.menu-card i{font-size:32px;color:#1D9E75;display:block;margin-bottom:8px}
+.menu-card .mc-title{font-size:14px;font-weight:500}
+.menu-card .mc-sub{font-size:12px;color:var(--color-text-secondary);margin-top:3px}
+.queue-num{background:#E1F5EE;border:2px dashed #1D9E75;border-radius:var(--border-radius-lg);padding:2rem;text-align:center;margin:1rem 0}
+.queue-num .num{font-size:48px;font-weight:500;color:#1D9E75}
+.queue-num .label{font-size:13px;color:var(--color-text-secondary);margin-top:4px}
+.chat-area{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px;min-height:180px;max-height:220px;overflow-y:auto;margin-bottom:10px;display:flex;flex-direction:column;gap:8px}
+.msg{padding:8px 12px;border-radius:12px;font-size:13px;max-width:80%}
+.msg.pasien{background:#1D9E75;color:#fff;align-self:flex-end;border-bottom-right-radius:3px}
+.msg.dokter{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);align-self:flex-start;border-bottom-left-radius:3px}
+.msg-time{font-size:10px;opacity:0.7;margin-top:2px;text-align:right}
+.chat-input-row{display:flex;gap:8px;align-items:flex-end}
+.chat-input-row textarea{flex:1;min-height:40px;max-height:80px;padding:8px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);font-size:13px;background:var(--color-background-primary);color:var(--color-text-primary);resize:none}
+.send-btn{background:#1D9E75;color:#fff;border:none;border-radius:var(--border-radius-md);padding:10px 14px;cursor:pointer;font-size:18px}
+.oat-card{background:var(--color-background-secondary);border-radius:var(--border-radius-md);border-left:4px solid #1D9E75;padding:12px 14px;margin-bottom:12px}
+.oat-card h3{font-size:13px;font-weight:500;color:#1D9E75;margin-bottom:4px}
+.oat-card p{font-size:12px;color:var(--color-text-secondary);line-height:1.5}
+.reminder-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);margin-bottom:8px}
+.reminder-item i{font-size:20px;color:#1D9E75}
+.reminder-item .ri-info{flex:1}
+.reminder-item .ri-info .ri-title{font-size:13px;font-weight:500}
+.reminder-item .ri-info .ri-sub{font-size:11px;color:var(--color-text-secondary)}
+.toggle{position:relative;width:38px;height:22px;cursor:pointer}
+.toggle input{opacity:0;width:0;height:0}
+.slider-tog{position:absolute;inset:0;background:#ccc;border-radius:11px;transition:0.2s}
+.slider-tog:before{content:"";position:absolute;height:16px;width:16px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:0.2s}
+.toggle input:checked+.slider-tog{background:#1D9E75}
+.toggle input:checked+.slider-tog:before{transform:translateX(16px)}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500}
+.badge-green{background:#E1F5EE;color:#0F6E56}
+.badge-amber{background:#FAEEDA;color:#854F0B}
+.days-prog{display:flex;gap:3px;flex-wrap:wrap;margin-top:8px}
+.day-dot{width:24px;height:24px;border-radius:50%;border:1.5px solid #1D9E75;display:flex;align-items:center;justify-content:center;font-size:9px;color:#1D9E75}
+.day-dot.done{background:#1D9E75;color:#fff}
+.section-title{font-size:15px;font-weight:500;margin-bottom:12px}
+.divider{border:none;border-top:0.5px solid var(--color-border-tertiary);margin:1rem 0}
+.alert{background:#E1F5EE;border:0.5px solid #5DCAA5;border-radius:var(--border-radius-md);padding:10px 14px;font-size:13px;color:#085041;margin-bottom:12px;display:none}
+.user-greeting{display:flex;align-items:center;gap:10px;margin-bottom:1rem}
+.avatar{width:40px;height:40px;border-radius:50%;background:#E1F5EE;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:500;color:#1D9E75}
+</style>
+
+<div id="app" style="max-width:480px;margin:0 auto;border-radius:var(--border-radius-lg);overflow:hidden;border:0.5px solid var(--color-border-tertiary)">
+
+<div class="header">
+  <div class="logo-circle"><i class="ti ti-stethoscope"></i></div>
+  <div>
+    <h1>SiPeduli TB</h1>
+    <p>Layanan Kesehatan TB Puskesmas</p>
+  </div>
+</div>
+
+<!-- PAGE: WELCOME -->
+<div id="pg-welcome" class="page active" style="padding:2rem 1.5rem;text-align:center">
+  <div style="margin:1.5rem 0">
+    <div style="width:80px;height:80px;border-radius:50%;background:#E1F5EE;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:40px;color:#1D9E75">
+      <i class="ti ti-heart-handshake"></i>
+    </div>
+    <h2 style="font-size:20px;font-weight:500;margin-bottom:8px">Selamat Datang</h2>
+    <p style="font-size:14px;color:var(--color-text-secondary);line-height:1.6">Layanan pendaftaran TB online yang mudah, aman, dan terjaga privasinya. Tidak perlu malu, kami siap membantu Anda.</p>
+  </div>
+  <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:14px;margin-bottom:1.5rem;font-size:13px;color:var(--color-text-secondary);line-height:1.5">
+    <i class="ti ti-shield-check" style="color:#1D9E75;margin-right:4px"></i>
+    Data Anda terlindungi dan bersifat rahasia
+  </div>
+  <p style="font-size:15px;font-weight:500;margin-bottom:14px">Apakah Anda sudah punya akun?</p>
+  <button class="btn btn-primary" onclick="goTo('pg-login')"><i class="ti ti-login"></i> Ya, saya sudah punya akun</button>
+  <button class="btn btn-outline" onclick="goTo('pg-register')" style="margin-top:10px"><i class="ti ti-user-plus"></i> Belum, daftarkan saya</button>
+</div>
+
+<!-- PAGE: REGISTER -->
+<div id="pg-register" class="page" style="padding:1.5rem">
+  <button class="btn-back" onclick="goTo('pg-welcome')"><i class="ti ti-arrow-left"></i> Kembali</button>
+  <p class="section-title"><i class="ti ti-user-plus" style="color:#1D9E75"></i> Buat Akun Baru</p>
+  <p style="font-size:13px;color:var(--color-text-secondary);margin-bottom:1rem">Isi data diri Anda dengan lengkap dan benar.</p>
+  <div class="card">
+    <div class="field">
+      <label>NIK (16 digit)</label>
+      <input type="text" id="reg-nik" maxlength="16" placeholder="Contoh: 1234567890123456" oninput="numOnly(this)">
+      <div class="err" id="err-nik">NIK harus 16 digit angka</div>
+    </div>
+    <div class="field">
+      <label>No. BPJS (13 digit)</label>
+      <input type="text" id="reg-bpjs" maxlength="13" placeholder="Contoh: 0001234567890" oninput="numOnly(this)">
+      <div class="err" id="err-bpjs">No. BPJS harus 13 digit angka</div>
+    </div>
+    <div class="field">
+      <label>No. Telepon</label>
+      <input type="text" id="reg-telp" maxlength="14" placeholder="Contoh: 08123456789" oninput="numOnly(this)">
+      <div class="err" id="err-telp">Masukkan nomor telepon yang valid</div>
+    </div>
+    <div class="field">
+      <label>Alamat Lengkap</label>
+      <textarea id="reg-alamat" placeholder="Jl. contoh, RT/RW, Kelurahan, Kecamatan..."></textarea>
+      <div class="err" id="err-alamat">Alamat tidak boleh kosong</div>
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="reg-pass" placeholder="Minimal 6 karakter">
+      <div class="err" id="err-pass">Password minimal 6 karakter</div>
+    </div>
+    <div class="field">
+      <label>Konfirmasi Password</label>
+      <input type="password" id="reg-pass2" placeholder="Ulangi password">
+      <div class="err" id="err-pass2">Password tidak cocok</div>
+    </div>
+    <div id="alert-reg" class="alert" style="display:none"></div>
+    <button class="btn btn-primary" onclick="doRegister()">Daftar Sekarang</button>
+    <p style="text-align:center;font-size:13px;color:var(--color-text-secondary);margin-top:12px">Sudah punya akun? <a href="#" onclick="goTo('pg-login');return false" style="color:#1D9E75">Login di sini</a></p>
+  </div>
+</div>
+
+<!-- PAGE: LOGIN -->
+<div id="pg-login" class="page" style="padding:1.5rem">
+  <button class="btn-back" onclick="goTo('pg-welcome')"><i class="ti ti-arrow-left"></i> Kembali</button>
+  <p class="section-title"><i class="ti ti-login" style="color:#1D9E75"></i> Masuk Akun</p>
+  <p style="font-size:13px;color:var(--color-text-secondary);margin-bottom:1rem">Gunakan NIK dan password Anda untuk masuk.</p>
+  <div class="card">
+    <div class="field">
+      <label>NIK (16 digit)</label>
+      <input type="text" id="login-nik" maxlength="16" placeholder="Masukkan NIK Anda" oninput="numOnly(this)">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="login-pass" placeholder="Masukkan password">
+    </div>
+    <div id="err-login" class="err" style="margin-bottom:8px">NIK atau password salah</div>
+    <button class="btn btn-primary" onclick="doLogin()">Masuk</button>
+    <p style="text-align:center;font-size:13px;color:var(--color-text-secondary);margin-top:12px">Belum punya akun? <a href="#" onclick="goTo('pg-register');return false" style="color:#1D9E75">Daftar di sini</a></p>
+  </div>
+</div>
+
+<!-- PAGE: DASHBOARD -->
+<div id="pg-dashboard" class="page" style="padding:1.5rem">
+  <div class="user-greeting">
+    <div class="avatar" id="dash-avatar">A</div>
+    <div>
+      <p style="font-size:14px;font-weight:500">Halo, <span id="dash-name">Pasien</span>!</p>
+      <p style="font-size:12px;color:var(--color-text-secondary)">Apa yang ingin Anda lakukan hari ini?</p>
+    </div>
+    <button onclick="doLogout()" style="margin-left:auto;background:none;border:none;color:var(--color-text-secondary);cursor:pointer;font-size:13px"><i class="ti ti-logout"></i></button>
+  </div>
+  <div class="menu-grid">
+    <div class="menu-card" onclick="goTo('pg-antrian')">
+      <i class="ti ti-list-numbers" aria-hidden="true"></i>
+      <div class="mc-title">Ambil Antrian</div>
+      <div class="mc-sub">Daftar pemeriksaan</div>
+    </div>
+    <div class="menu-card" onclick="goTo('pg-konsul')">
+      <i class="ti ti-message-dots" aria-hidden="true"></i>
+      <div class="mc-title">Konsul Dokter</div>
+      <div class="mc-sub">Tanya keluhan Anda</div>
+    </div>
+    <div class="menu-card" onclick="goTo('pg-oat')" style="grid-column:1/-1">
+      <i class="ti ti-pill" aria-hidden="true"></i>
+      <div class="mc-title">Pengingat OAT</div>
+      <div class="mc-sub">Pengingat minum obat & jadwal harian</div>
+    </div>
+  </div>
+  <div style="margin-top:1rem;background:#E1F5EE;border-radius:var(--border-radius-md);padding:12px 14px;font-size:12px;color:#085041;line-height:1.5">
+    <i class="ti ti-info-circle" style="margin-right:4px"></i>
+    <strong>Ingat:</strong> Minum OAT setiap hari di jam yang sama. Jangan sampai terlewat!
+  </div>
+</div>
+
+<!-- PAGE: ANTRIAN -->
+<div id="pg-antrian" class="page" style="padding:1.5rem">
+  <button class="btn-back" onclick="goTo('pg-dashboard')"><i class="ti ti-arrow-left"></i> Kembali</button>
+  <p class="section-title"><i class="ti ti-list-numbers" style="color:#1D9E75"></i> Ambil Nomor Antrian</p>
+  <div class="card">
+    <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px;margin-bottom:14px;font-size:13px;color:var(--color-text-secondary)">
+      <i class="ti ti-calendar" style="color:#1D9E75;margin-right:4px"></i>
+      <span id="antrian-date"></span>
+    </div>
+    <div class="field">
+      <label>Pilih jenis pemeriksaan</label>
+      <select id="jenis-periksa">
+        <option value="">-- Pilih --</option>
+        <option value="Pemeriksaan Awal TB">Pemeriksaan Awal TB</option>
+        <option value="Kontrol Rutin TB">Kontrol Rutin TB</option>
+        <option value="Pengambilan Obat OAT">Pengambilan Obat OAT</option>
+        <option value="Pemeriksaan Lab Dahak">Pemeriksaan Lab Dahak</option>
+      </select>
+    </div>
+    <div id="err-antrian" class="err">Pilih jenis pemeriksaan terlebih dahulu</div>
+    <div id="queue-result" style="display:none">
+      <div class="queue-num">
+        <div class="num" id="queue-number">T001</div>
+        <div class="label">Nomor Antrian Anda</div>
+      </div>
+      <div style="font-size:13px;color:var(--color-text-secondary);text-align:center;margin-bottom:12px">
+        Estimasi tunggu: <strong style="color:var(--color-text-primary)" id="est-tunggu">±15 menit</strong>
+      </div>
+      <div style="background:#E1F5EE;border-radius:var(--border-radius-md);padding:10px 14px;font-size:12px;color:#085041">
+        <i class="ti ti-check" style="margin-right:4px"></i>
+        Antrian untuk: <strong id="jenis-terpilih"></strong><br>
+        Harap datang tepat waktu dan bawa kartu identitas.
+      </div>
+    </div>
+    <button class="btn btn-primary" id="btn-antrian" onclick="ambilAntrian()" style="margin-top:10px">Ambil Nomor Antrian</button>
+    <button class="btn btn-outline" id="btn-antrian-baru" onclick="resetAntrian()" style="display:none;margin-top:8px">Ambil Antrian Baru</button>
+  </div>
+</div>
+
+<!-- PAGE: KONSUL -->
+<div id="pg-konsul" class="page" style="padding:1.5rem">
+  <button class="btn-back" onclick="goTo('pg-dashboard')"><i class="ti ti-arrow-left"></i> Kembali</button>
+  <p class="section-title"><i class="ti ti-message-dots" style="color:#1D9E75"></i> Konsultasi Dokter</p>
+  <div class="card">
+    <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);margin-bottom:12px">
+      <div style="width:32px;height:32px;border-radius:50%;background:#E1F5EE;display:flex;align-items:center;justify-content:center;color:#1D9E75;font-size:16px"><i class="ti ti-user-heart"></i></div>
+      <div>
+        <div style="font-size:13px;font-weight:500">dr. Sari Indah</div>
+        <div style="font-size:11px;color:#1D9E75"><i class="ti ti-circle-filled" style="font-size:8px"></i> Online</div>
+      </div>
+    </div>
+    <div class="chat-area" id="chat-area">
+      <div class="msg dokter">Halo! Saya dr. Sari Indah. Apa keluhan atau pertanyaan yang ingin Anda sampaikan hari ini?<div class="msg-time">09:00</div></div>
+    </div>
+    <div class="chat-input-row">
+      <textarea id="chat-input" placeholder="Tulis keluhan Anda..." onkeydown="chatEnter(event)"></textarea>
+      <button class="send-btn" onclick="sendChat()"><i class="ti ti-send"></i></button>
+    </div>
+    <p style="font-size:11px;color:var(--color-text-secondary);margin-top:8px"><i class="ti ti-shield-lock" style="margin-right:2px"></i>Percakapan ini bersifat rahasia dan aman</p>
+  </div>
+</div>
+
+<!-- PAGE: OAT REMINDER -->
+<div id="pg-oat" class="page" style="padding:1.5rem">
+  <button class="btn-back" onclick="goTo('pg-dashboard')"><i class="ti ti-arrow-left"></i> Kembali</button>
+  <p class="section-title"><i class="ti ti-pill" style="color:#1D9E75"></i> Pengingat Minum OAT</p>
+  <div class="oat-card">
+    <h3><i class="ti ti-info-circle"></i> Aturan Minum OAT</h3>
+    <p>Minum OAT dalam kondisi <strong>perut kosong</strong>: 1 jam sebelum makan atau 2 jam setelah makan. Pengobatan berlangsung <strong>6–9 bulan</strong> dan harus dikonsumsi <strong>setiap hari di jam yang sama</strong>.</p>
+  </div>
+  <div class="card" style="margin-bottom:12px">
+    <p style="font-size:13px;font-weight:500;margin-bottom:10px"><i class="ti ti-clock" style="color:#1D9E75"></i> Atur Jam Pengingat</p>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <div class="field" style="flex:1;margin:0">
+        <label>Jam minum obat</label>
+        <input type="time" id="oat-time" value="07:00">
+      </div>
+      <div class="field" style="flex:1;margin:0">
+        <label>Tanggal mulai</label>
+        <input type="date" id="oat-start">
+      </div>
+    </div>
+    <div class="field" style="margin-top:10px">
+      <label>Durasi pengobatan</label>
+      <select id="oat-duration">
+        <option value="6">6 bulan</option>
+        <option value="9">9 bulan</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" onclick="saveReminder()">Simpan & Aktifkan Pengingat</button>
+    <div id="reminder-saved" style="display:none;background:#E1F5EE;border-radius:var(--border-radius-md);padding:10px;margin-top:10px;font-size:13px;color:#085041;text-align:center">
+      <i class="ti ti-check-circle" style="margin-right:4px"></i><span id="saved-text"></span>
+    </div>
+  </div>
+  <div class="card">
+    <p style="font-size:13px;font-weight:500;margin-bottom:10px"><i class="ti ti-calendar-check" style="color:#1D9E75"></i> Progress Minggu Ini</p>
+    <div id="week-progress" class="days-prog"></div>
+    <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap" id="oat-toggle-row">
+      <button class="btn btn-outline" onclick="markToday()" style="flex:1;margin:0;font-size:13px">Tandai Sudah Minum Hari Ini</button>
+    </div>
+    <div id="mark-msg" style="display:none;font-size:12px;color:#1D9E75;margin-top:6px;text-align:center"><i class="ti ti-check"></i> Terima kasih! Tetap semangat menjalani pengobatan.</div>
+  </div>
+  <div class="card" style="margin-top:12px">
+    <p style="font-size:13px;font-weight:500;margin-bottom:10px"><i class="ti ti-bell" style="color:#1D9E75"></i> Status Pengingat</p>
+    <div class="reminder-item">
+      <i class="ti ti-pill" aria-hidden="true"></i>
+      <div class="ri-info">
+        <div class="ri-title">Pengingat Harian OAT</div>
+        <div class="ri-sub" id="oat-reminder-sub">Setiap hari — jam <span id="oat-display-time">07:00</span></div>
+      </div>
+      <label class="toggle"><input type="checkbox" checked id="oat-toggle"><span class="slider-tog"></span></label>
+    </div>
+    <div class="reminder-item">
+      <i class="ti ti-calendar-event" aria-hidden="true"></i>
+      <div class="ri-info">
+        <div class="ri-title">Kontrol Rutin</div>
+        <div class="ri-sub">Setiap bulan — ikuti jadwal puskesmas</div>
+      </div>
+      <label class="toggle"><input type="checkbox" checked><span class="slider-tog"></span></label>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+let users = {};
+let currentUser = null;
+let queueCount = 0;
+let oatDays = [false,false,false,false,false,false,false];
+
+function numOnly(el){el.value=el.value.replace(/\D/g,'')}
+
+function goTo(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(id==='pg-antrian'){
+    const d=new Date();
+    document.getElementById('antrian-date').textContent='Hari ini: '+d.toLocaleDateString('id-ID',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  }
+  if(id==='pg-oat'){
+    const today=new Date().toISOString().split('T')[0];
+    if(!document.getElementById('oat-start').value)document.getElementById('oat-start').value=today;
+    renderWeek();
+  }
+}
+
+function doRegister(){
+  let ok=true;
+  const nik=document.getElementById('reg-nik').value;
+  const bpjs=document.getElementById('reg-bpjs').value;
+  const telp=document.getElementById('reg-telp').value;
+  const alamat=document.getElementById('reg-alamat').value;
+  const pass=document.getElementById('reg-pass').value;
+  const pass2=document.getElementById('reg-pass2').value;
+  const showErr=(id,show)=>{document.getElementById(id).style.display=show?'block':'none'};
+  showErr('err-nik',nik.length!==16);if(nik.length!==16)ok=false;
+  showErr('err-bpjs',bpjs.length!==13);if(bpjs.length!==13)ok=false;
+  showErr('err-telp',telp.length<9);if(telp.length<9)ok=false;
+  showErr('err-alamat',!alamat.trim());if(!alamat.trim())ok=false;
+  showErr('err-pass',pass.length<6);if(pass.length<6)ok=false;
+  showErr('err-pass2',pass!==pass2);if(pass!==pass2)ok=false;
+  if(!ok)return;
+  if(users[nik]){
+    const a=document.getElementById('alert-reg');
+    a.textContent='NIK sudah terdaftar. Silakan login.';a.style.display='block';
+    setTimeout(()=>{a.style.display='none';goTo('pg-login')},2000);return;
+  }
+  users[nik]={nik,bpjs,telp,alamat,pass,nama:'Pasien '+nik.slice(-4)};
+  const a=document.getElementById('alert-reg');
+  a.textContent='Akun berhasil dibuat! Mengarahkan ke halaman login...';
+  a.style.background='#E1F5EE';a.style.borderColor='#5DCAA5';a.style.color='#085041';
+  a.style.display='block';
+  setTimeout(()=>{a.style.display='none';goTo('pg-login')},1800);
+}
+
+function doLogin(){
+  const nik=document.getElementById('login-nik').value;
+  const pass=document.getElementById('login-pass').value;
+  const err=document.getElementById('err-login');
+  if(!users[nik]||users[nik].pass!==pass){err.style.display='block';return;}
+  err.style.display='none';
+  currentUser=users[nik];
+  document.getElementById('dash-name').textContent=currentUser.nama;
+  document.getElementById('dash-avatar').textContent=currentUser.nama.charAt(0).toUpperCase();
+  goTo('pg-dashboard');
+}
+
+function doLogout(){
+  currentUser=null;
+  goTo('pg-welcome');
+}
+
+function ambilAntrian(){
+  const jenis=document.getElementById('jenis-periksa').value;
+  const err=document.getElementById('err-antrian');
+  if(!jenis){err.style.display='block';return;}
+  err.style.display='none';
+  queueCount++;
+  const num='T'+String(queueCount).padStart(3,'0');
+  document.getElementById('queue-number').textContent=num;
+  document.getElementById('jenis-terpilih').textContent=jenis;
+  const est=[15,20,25,30,10];
+  document.getElementById('est-tunggu').textContent='±'+est[Math.floor(Math.random()*5)]+' menit';
+  document.getElementById('queue-result').style.display='block';
+  document.getElementById('btn-antrian').style.display='none';
+  document.getElementById('btn-antrian-baru').style.display='block';
+}
+
+function resetAntrian(){
+  document.getElementById('jenis-periksa').value='';
+  document.getElementById('queue-result').style.display='none';
+  document.getElementById('btn-antrian').style.display='block';
+  document.getElementById('btn-antrian-baru').style.display='none';
+}
+
+const chatResponses=[
+  'Terima kasih telah menyampaikan keluhan Anda. Saya akan mencatat dan menindaklanjutinya.',
+  'Mohon tetap minum OAT setiap hari ya. Jangan sampai terlewat untuk hasil yang optimal.',
+  'Efek samping ringan seperti mual adalah hal yang wajar. Namun jika berlanjut, segera hubungi kami.',
+  'Baik, saya anjurkan Anda untuk datang ke puskesmas untuk pemeriksaan lebih lanjut.',
+  'Semangat ya! Pengobatan TB memang panjang, tapi dengan disiplin pasti bisa sembuh.'
+];
+let chatIdx=0;
+
+function sendChat(){
+  const inp=document.getElementById('chat-input');
+  const msg=inp.value.trim();
+  if(!msg)return;
+  const area=document.getElementById('chat-area');
+  const now=new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+  area.innerHTML+=`<div class="msg pasien">${msg}<div class="msg-time">${now}</div></div>`;
+  inp.value='';
+  area.scrollTop=area.scrollHeight;
+  setTimeout(()=>{
+    const r=chatResponses[chatIdx%chatResponses.length];chatIdx++;
+    const t=new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    area.innerHTML+=`<div class="msg dokter">${r}<div class="msg-time">${t}</div></div>`;
+    area.scrollTop=area.scrollHeight;
+  },1000);
+}
+
+function chatEnter(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();}}
+
+function saveReminder(){
+  const t=document.getElementById('oat-time').value;
+  document.getElementById('oat-display-time').textContent=t;
+  document.getElementById('saved-text').textContent='Pengingat diaktifkan setiap hari pukul '+t;
+  document.getElementById('reminder-saved').style.display='block';
+  setTimeout(()=>document.getElementById('reminder-saved').style.display='none',3000);
+}
+
+function renderWeek(){
+  const days=['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
+  const today=new Date().getDay();
+  const row=document.getElementById('week-progress');
+  row.innerHTML='';
+  for(let i=0;i<7;i++){
+    const d=document.createElement('div');
+    d.className='day-dot'+(oatDays[i]?' done':'');
+    d.textContent=days[i];
+    if(i===today&&!oatDays[i])d.style.borderColor='#EF9F27';
+    row.appendChild(d);
+  }
+}
+
+function markToday(){
+  const today=new Date().getDay();
+  oatDays[today]=true;
+  renderWeek();
+  document.getElementById('mark-msg').style.display='block';
+  setTimeout(()=>document.getElementById('mark-msg').style.display='none',3000);
+}
+</script>
