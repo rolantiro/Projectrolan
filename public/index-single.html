@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Pendaftaran Pasien TB - Puskesmas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #2ecc71;
+            --secondary-color: #3498db;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --light-bg: #ecf0f1;
+            --dark-text: #2c3e50;
+            --border-color: #bdc3c7;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            max-width: 500px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--dark-text);
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(46, 204, 113, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(52, 152, 219, 0.4);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(243, 156, 18, 0.4);
+        }
+
+        .btn-danger {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 14px;
+            width: auto;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+
+        .toggle-link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: var(--dark-text);
+        }
+
+        .toggle-link a {
+            color: var(--primary-color);
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .toggle-link a:hover {
+            text-decoration: underline;
+        }
+
+        .error-message {
+            background: #fadbd8;
+            color: #c0392b;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 4px solid #c0392b;
+        }
+
+        .success-message {
+            background: #d5f4e6;
+            color: #27ae60;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 4px solid #27ae60;
+        }
+
+        .info-box {
+            background: #e8f4f8;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            font-size: 13px;
+            color: var(--dark-text);
+            line-height: 1.6;
+        }
+
+        .menu-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .menu-btn {
+            padding: 20px;
+            text-align: center;
+            border: 2px solid var(--border-color);
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            color: var(--dark-text);
+        }
+
+        .menu-btn:hover {
+            border-color: var(--primary-color);
+            background: #f0f9f6;
+            transform: translateY(-2px);
+        }
+
+        .queue-display {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .queue-display .label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .queue-display .number {
+            font-size: 48px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .queue-display .status {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .reminder-card {
+            background: #fff3cd;
+            border-left: 4px solid var(--warning-color);
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+        }
+
+        .reminder-card.taken {
+            background: #d5f4e6;
+            border-left-color: var(--primary-color);
+        }
+
+        .reminder-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .reminder-time {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .reminder-text {
+            font-size: 13px;
+            color: var(--dark-text);
+            margin-bottom: 10px;
+        }
+
+        .oat-guidelines {
+            background: #e8f8f5;
+            border-left: 4px solid #16a085;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        .oat-guidelines h4 {
+            color: #16a085;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .oat-guidelines strong {
+            display: block;
+            margin-top: 10px;
+            color: #16a085;
+        }
+
+        .profile-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .profile-info p {
+            margin: 8px 0;
+            font-size: 14px;
+        }
+
+        .profile-label {
+            font-weight: 600;
+            color: var(--dark-text);
+        }
+
+        .consultation-item {
+            background: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+        }
+
+        .consultation-date {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-bottom: 8px;
+        }
+
+        .consultation-message {
+            font-size: 14px;
+            color: var(--dark-text);
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .doctor-reply {
+            background: #d5f4e6;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            border-left: 4px solid var(--primary-color);
+            font-size: 13px;
+            color: var(--dark-text);
+        }
+
+        .pending-status {
+            font-size: 12px;
+            color: var(--warning-color);
+            font-weight: 600;
+        }
+
+        .schedule-display {
+            background: #e8f8f5;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+            border: 2px solid #16a085;
+        }
+
+        .schedule-display .time {
+            font-size: 36px;
+            font-weight: bold;
+            color: #16a085;
+            margin: 10px 0;
+        }
+
+        .schedule-display .date {
+            font-size: 14px;
+            color: #16a085;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                max-width: 100%;
+                border-radius: 0;
+            }
+
+            .content {
+                padding: 25px;
+            }
+
+            .header {
+                padding: 30px 20px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .menu-options {
+                grid-template-columns: 1fr;
+            }
+
+            .queue-display .number {
+                font-size: 36px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+
+    <script>
+        // API Configuration
+        const API_BASE = 'http://localhost:5000/api';
+
+        // State Management
+        let currentUser = null;
+        let currentToken = null;
+        let currentQueue = null;
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedToken = localStorage.getItem('token');
+            const savedUser = localStorage.getItem('user');
+
+            if (savedToken && savedUser) {
+                currentToken = savedToken;
+                currentUser = JSON.parse(savedUser);
+                showMainMenu();
+            } else {
+                showAuthChoice();
+            }
+        });
+
+        // ==================== HALAMAN AUTENTIKASI ====================
+        
+        function showAuthChoice() {
+            const app = document.getElementById('app');
+            app.innerHTML = `
+                <div class="container">
+                    <div class="header">
+                        <h1>🏥 Puskesmas TB Care</h1>
+                        <p>Sistem Pendaftaran Pasien TB</p>
+                    </div>
+                    <div class="content">
+                        <div class="info-box">
+                            <strong>Selamat datang!</strong>
+                            <p>Sistem ini memudahkan pendaftaran dan konsultasi pasien TB secara online.</p>
+                        </div>
+                        <button class="btn-primary" style="margin-bottom: 12px;" onclick="showLogin()">
+                            ✓ Sudah Punya Akun? Login
+                        </button>
+                        <button class="btn-secondary" onclick="showRegister()">
+                            + Belum Punya Akun? Daftar
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showLogin() {
+            const app = document.getElementById('app');
+            app.innerHTML = `
+                <div class="container">
+                    <div class="header">
+                        <h1>🔐 Login</h1>
+                        <p>Masuk ke akun Anda</p>
+                    </div>
+                    <div class="content">
+                        <div id="loginError"></div>
+                        <div class="form-group">
+                            <label for="loginNik">NIK (16 digit)</label>
+                            <input type="text" id="loginNik" placeholder="Masukkan 16 digit NIK" maxlength="16" inputmode="numeric">
+                        </div>
+                        <div class="form-group">
+                            <label for="loginPassword">Password</label>
+                            <input type="password" id="loginPassword" placeholder="Masukkan password">
+                        </div>
+                        <button class="btn-primary" onclick="handleLogin()">Login</button>
+                        <div class="toggle-link">
+                            Belum punya akun? <a onclick="showRegister()">Daftar di sini</a>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('loginNik').focus();
+        }
+
+        function showRegister() {
+            const app = document.getElementById('app');
+            app.innerHTML = `
+                <div class="container">
+                    <div class="header">
+                        <h1>📝 Daftar Akun</h1>
+                        <p>Buat akun baru untuk login</p>
+                    </div>
+                    <div class="content">
+                        <div id="registerError"></div>
+                        <div class="form-group">
+                            <label for="regNik">NIK (16 digit)</label>
+                            <input type="text" id="regNik" placeholder="Masukkan 16 digit NIK" maxlength="16" inputmode="numeric">
+                        </div>
+                        <div class="form-group">
+                            <label for="regBpjs">No. BPJS (13 digit)</label>
+                            <input type="text" id="regBpjs" placeholder="Masukkan 13 digit BPJS" maxlength="13" inputmode="numeric">
+                        </div>
+                        <div class="form-group">
+                            <label for="regPhone">No. Telepon</label>
+                            <input type="tel" id="regPhone" placeholder="Contoh: 081234567890" inputmode="tel">
+                        </div>
+                        <div class="form-group">
+                            <label for="regAddress">Alamat</label>
+                            <textarea id="regAddress" placeholder="Masukkan alamat lengkap" rows="3"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="regPassword">Password</label>
+                            <input type="password" id="regPassword" placeholder="Buat password yang kuat">
+                        </div>
+                        <button class="btn-primary" onclick="handleRegister()">Daftar</button>
+                        <div class="toggle-link">
+                            Sudah punya akun? <a onclick="showLogin()">Login di sini</a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function handleRegister() {
+            const nik = document.getElementById('regNik').value;
+            const bpjs = document.getElementById('regBpjs').value;
+            const phone = document.getElementById('regPhone').value;
+            const address = document.getElementById('regAddress').value;
+            const password = document.getElementById('regPassword').value;
+
+            if (!nik || !bpjs || !phone || !address || !password) {
+                showError('registerError', 'Semua field harus diisi');
+                return;
+            }
+
+            if (nik.length !== 16) {
+                showError('registerError', 'NIK harus 16 digit');
+                return;
+            }
+
+            if (bpjs.length !== 13) {
+                showError('registerError', 'BPJS harus 13 digit');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nik, bpjs, phone, address, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    currentToken = data.token;
+                    currentUser = data.patient;
+                    localStorage.setItem('token', currentToken);
+                    localStorage.setItem('user', JSON.stringify(currentUser));
+                    showMainMenu();
+                } else {
+                    showError('registerError', data.message);
+                }
+            } catch (error) {
+                showError('registerError', 'Terjadi kesalahan: ' + error.message);
+            }
+        }
+
+        async function handleLogin() {
+            const nik = document.getElementById('loginNik').value;
+            const password = document.getElementById('loginPassword').value;
+
+            if (!nik || !password) {
+                showError('loginError', 'NIK dan password harus diisi');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nik, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    currentToken = data.token;
+                    currentUser = data.patient;
+                    localStorage.setItem('token', currentToken);
+                    localStorage.setItem('user', JSON.stringify(currentUser));
+                    showMainMenu();
+                } else {
+                    showError('loginError', data.message);
+                }
+            } catch (error) {
+                showError('loginError', 'Terjadi kesalahan: ' + error.message);
+            }
+        }
+
+        // ==================== HALAMAN MENU UTAMA ====================
+        
+        function showMainMenu() {
+            const app = document.getElementById('app');
+            app.innerHTML = `
+                <div class="container">
+                    <div class="header">
+                        <h1>🏥 Puskesmas TB Care</h1>
+                        <p>Selamat datang, ${currentUser.nik}</p>
+                    </div>
+                    <div class="content">
+                        <div class="profile-info">
+                            <p><span class="profile-label">📋 NIK:</span> ${currentUser.nik}</p>
+                            <p><span class="profile-label">✓ Status:</span> Pasien Terdaftar</p>
+                        </div>
+                        <div class="menu-options">
+                            <div class="menu-btn" onclick="showQueuePage()">
+                                🎫<br>Ambil Antrian
+                            </div>
+                            <div class="menu-btn" onclick="showObatPage()">
+                                💊<br>Jadwal OAT
+                            </div>
+                            <div class="menu-btn" onclick="showKonsulPage()">
+                                💬<br>Konsul Dokter
+                            </div>
+                            <div class="menu-btn" onclick="logout()">
+                                🚪<br>Logout
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ==================== HALAMAN ANTRIAN ====================
+        
+        function showQueuePage() {
+            const app = document.getElementById('app');
+            app.innerHTML = `
+                <div class="container">
+                    <div class="header">
+                        <h1>🎫 ANTRIAN PUSKESMAS</h1>
+                        <p>Ambil nomor antrian Anda</p>
+                    </div>
+                    <div class="content">
+                        <div id="queueError"></div>
+                        
+                        <div class="info-box">
+                            <strong>ℹ️ Informasi Antrian</strong>
+                            <p>Pilih jenis konsultasi untuk mendapatkan nomor antrian. Nomor akan otomatis diberikan dari sistem kami.</p>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="consultationType">📌 Pilih Jenis Konsultasi</label>
+                            <select id="consultationType">
+                                <option value="">-- Pilih Jenis --</option>
+                                <option value="general-consultation">Konsultasi Umum</option>
+                                <option value="follow-up">Pemeriksaan Lanjutan</option>
+                                <option value="medication-check">Pengecekan Obat</option>
+                            </select>
+                        </div>
+
+                        <button class="btn-primary" onclick="takeQueue()">Ambil Nomor Antrian</button>
+                        <button class="btn-secondary" onclick="showMainMenu()">Kembali ke Menu</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function takeQueue() {
+            const consultationType = document.getElementById('consultationType').value;
+
+            if (!consultationType) {
+                showError('queueError', 'Pilih jenis konsultasi terlebih dahulu');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/queue/take`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${currentToken}`
+                    },
+                    body: JSON.stringify({ consultationType })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    currentQueue = data.queue;
+                    showQueueConfirmation();
+                } else {
+                    showError('queueError', data.message);
+                }
+            } catch (error) {
+                showError('queueError', 'Terjadi kesalahan: ' + error.message);
+            }
+        }
+
+        function showQueueConfirmation() {
+            const app = document.getElementById('app');
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+            const dateStr = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+            app.innerHTML = `
+                <div class="container">
+                    <div class="header">
+                        <h1>✓ ANTRIAN BERHASIL</h1>
+                        <p>Nomor antrian Anda telah terdaftar</p>
+                    </div>
+                    <div class="content">
+                        <div class="success-message">
+                            <strong>✓ Antrian berhasil diambil!</strong>
+                        </div>
+
+                        <div class="queue-display">
+                            <div class="label">NOMOR ANTRIAN ANDA</div>
+                            <div class="number">${currentQueue.queueNumber}</div>
+                            <div class="status">Jam: ${timeStr}</div>
+                        </div>
+
+                        <div class="info-box">
+                            <strong>📅 Tanggal: ${dateStr}</strong>
+                            <p style="margin-top: 10px;">Silakan tunggu di loket sesuai nomor antrian Anda. Perhatikan papan informasi untuk panggilan antrian.</p>
+                            <p style="margin-top: 8px; font-weight: 600;">⏰ Jangan tinggalkan area puskesmas sebelum nomor dipanggil!</p>
+                        </div>
+
+                        <button class="btn-primary" onclick="showMainMenu()">Kembali ke Menu Utama</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ==================== HALAMAN JADWAL OAT ====================
+        
+        function showObatPage() {
+            const app = document.getElementById('app');
+            app.innerHTML = `
+                <div class="container">
+                    <div class="header">
+                        <h1>💊 JADWAL MINUM OAT</h1>
+                        <p>Pengingat Obat Anti Tuberkulosis</p>
+                    </div>
+                    <div class="content">
+                        <div class="oat-guidelines">
+                            <h4>📋 ATURAN MINUM OAT</h4>
+                            <strong>⏰ WAKTU MINUM:</strong>
+                            <span>Perut kosong (WAJIB)</span>
+                            <p style="margin-left: 20px; margin-top: 5px;">
+                                🔹 1 jam SEBELUM makan ATAU<br>
+                                🔹 2 jam SESUDAH makan
+                            </p>
+                            
+                            <strong>📅 DURASI PENGOBATAN:</strong>
+                            <span>6-9 bulan (tidak boleh putus!)</span>
+                            
+                            <strong>✓ KEPATUHAN:</strong>
+                            <span>Setiap hari pada JAM YANG SAMA</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="reminderTime">⏰ Atur Jam Pengingat</label>
+                            <input type="time" id="reminderTime" value="07:00">
+                        </div>
+
+                        <button class="btn-primary" onclick="setReminderTime()">💾 Simpan Jam Pengingat</button>
+
+                        <div id="remindersList" style="margin-top: 25px;">
+                            <p style="text-align: center; color: #7f8c8d;">📲 Memuat pengingat...</p>
+                        </div>
+
+                        <button class="btn-secondary" onclick="showMainMenu()" style="margin-top: 12px;">Kembali ke Menu</button>
+                    </div>
+                </div>
+            `;
+
+            loadReminders();
+        }
+
+        async function setReminderTime() {
+            const reminderTime = document.getElementById('reminderTime').value;
+
+            if (!reminderTime) {
+                alert('❌ Pilih jam terlebih dahulu');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/reminder/set-treatment`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${currentToken}`
+                    },
+                    body: JSON.stringify({
+                        startDate: new Date(),
+                        reminderTime
+                    })
+                });
+
+                if (response.ok) {
+                    alert('✓ Jam pengingat disimpan!\n\nAnda akan menerima pengingat setiap hari pukul ' + reminderTime);
+                    loadReminders();
+                }
+            } catch (error) {
+                alert('❌ Terjadi kesalahan: ' + error.message);
+            }
+        }
+
+        async function loadReminders() {
+            try {
+                const response = await fetch(`${API_BASE}/reminder/my-reminders`, {
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+
+                const reminders = await response.json();
+                const remindersList = document.getElementById('remindersList');
+
+                if (reminders.length === 0) {
+                    remindersList.innerHTML = '<div class="info-box">📌 Belum ada pengingat yang dijadwalkan. Atur jam pengingat terlebih dahulu.</div>';
+                } else {
+                    let html = '<h3 style="margin-bottom: 15px; color: var(--dark-text);">📅 Pengingat Anda:</h3>';
+                    reminders.slice(0, 7).forEach(reminder => {
+                        const date = new Date(reminder.reminderDate);
+                        const dateStr = date.toLocaleDateString('id-ID', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+                        const timeStr = reminder.reminderTime;
+                        
+                        const isAcknowledged = reminder.status === 'acknowledged';
+                        html += `
+                            <div class="reminder-card ${isAcknowledged ? 'taken' : ''}">
+                                <div class="reminder-info">
+                                    <div>
+                                        <div class="reminder-time">⏰ ${timeStr}</div>
+                                        <div class="reminder-text" style="margin-top: 5px;">📅 ${dateStr}</div>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        ${isAcknowledged ? '<span style="color: #27ae60; font-weight: 600;">✓ Sudah Diminum</span>' : '<span class="pending-status">⏳ Belum Diminum</span>'}
+                                    </div>
+                                </div>
+                                ${!isAcknowledged ? `
+                                    <button class="btn-small btn-primary" onclick="acknowledgeReminder('${reminder._id}')">
+                                        ✓ Saya Sudah Minum
+                                    </button>
+                                ` : ''}
+                            </div>
+                        `;
+                    });
+                    remindersList.innerHTML = html;
+                }
+            } catch (error) {
+                const remindersList = document.getElementById('remindersList');
+                remindersList.innerHTML = '<div class="error-message">❌ Gagal memuat pengingat</div>';
+            }
+        }
+
+        async function acknowledgeReminder(reminderId) {
+            try {
+                const response = await fetch(`${API_BASE}/reminder/acknowledge/${reminderId}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+
+                if (response.ok) {
+                    loadReminders();
+                    alert('✓ Terima kasih sudah minum obat! Semoga cepat sembuh.');
+                }
+            } catch (error) {
+                alert('❌ Terjadi kesalahan: ' + error.message);
+            }
+        }
+
+        // ==================== HALAMAN KONSULTASI ====================
+        
+        function showKonsulPage() {
+            const app = document.getElementById('app');
+            app.innerHTML = `
+                <div class="container">
+                    <div class="header">
+                        <h1>💬 KONSULTASI DOKTER</h1>
+                        <p>Tanyakan keluhan Anda</p>
+                    </div>
+                    <div class="content">
+                        <div class="menu-options" style="grid-template-columns: 1fr; gap: 8px;">
+                            <button class="btn-primary" onclick="showKirimKonsultasi()">
+                                ✏️ Kirim Pertanyaan Baru
+                            </button>
+                            <button class="btn-secondary" onclick="showRiwayatKonsultasi()">
+                                📋 Lihat Riwayat Konsultasi
+                            </button>
+                            <button class="btn-secondary" onclick="showMainMenu()" style="background: #95a5a6;">
+                                🔙 Kembali ke Menu
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showKirimKonsultasi() {
+            const app = document.getElementById('app');
+            app.innerHTML = `
+                <div class="container">
+                    <div class="header">
+                        <h1>💬 KIRIM KONSULTASI</h1>
+                        <p>Jelaskan keluhan Anda</p>
+                    </div>
+                    <div class="content">
+                        <div id="konsultasiError"></div>
+                        
+                        <div class="info-box">
+                            💡 Jelaskan keluhan, gejala, atau pertanyaan Anda dengan detail agar dokter dapat membantu lebih baik.
+                        </div>
+
+                        <div class="form-group">
+                            <label for="konsultasiMessage">📝 Keluhan/Pertanyaan</label>
+                            <textarea id="konsultasiMessage" placeholder="Contoh: Saya merasa sesak napas dan batuk berkepanjangan..." rows="6"></textarea>
+                        </div>
+
+                        <button class="btn-primary" onclick="sendConsultation()">📤 Kirim Keluhan</button>
+                        <button class="btn-secondary" onclick="showKonsulPage()">Kembali</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('konsultasiMessage').focus();
+        }
+
+        async function sendConsultation() {
+            const message = document.getElementById('konsultasiMessage').value;
+
+            if (!message) {
+                showError('konsultasiError', 'Keluhan tidak boleh kosong');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/consultation/send`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${currentToken}`
+                    },
+                    body: JSON.stringify({ 
+                        message,
+                        queueId: currentQueue?._id
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    const app = document.getElementById('app');
+                    app.innerHTML = `
+                        <div class="container">
+                            <div class="header">
+                                <h1>✓ KONSULTASI DIKIRIM</h1>
+                                <p>Dokter akan merespon segera</p>
+                            </div>
+                            <div class="content">
+                                <div class="success-message">
+                                    <strong>✓ Keluhan Anda telah diterima!</strong>
+                                    <p style="margin-top: 8px;">Dokter kami akan merespon dalam waktu singkat. Silakan periksa riwayat konsultasi untuk melihat balasan.</p>
+                                </div>
+
+                                <div class="info-box">
+                                    💬 Anda dapat melihat balasan dokter di menu "Lihat Riwayat Konsultasi"
+                                </div>
+
+                                <button class="btn-primary" onclick="showRiwayatKonsultasi()">📋 Lihat Riwayat</button>
+                                <button class="btn-secondary" onclick="showMainMenu()" style="margin-top: 12px;">Kembali ke Menu</button>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    showError('konsultasiError', data.message);
+                }
+            } catch (error) {
+                showError('konsultasiError', 'Terjadi kesalahan: ' + error.message);
+            }
+        }
+
+        async function showRiwayatKonsultasi() {
+            try {
+                const response = await fetch(`${API_BASE}/consultation/history`, {
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+
+                const consultations = await response.json();
+                const app = document.getElementById('app');
+
+                let html = `
+                    <div class="container">
+                        <div class="header">
+                            <h1>📋 RIWAYAT KONSULTASI</h1>
+                            <p>Pertanyaan dan jawaban Anda</p>
+                        </div>
+                        <div class="content">
+                `;
+
+                if (consultations.length === 0) {
+                    html += '<div class="info-box">📌 Belum ada riwayat konsultasi. Kirim pertanyaan terlebih dahulu.</div>';
+                } else {
+                    consultations.forEach(consultation => {
+                        const date = new Date(consultation.createdAt);
+                        const dateStr = date.toLocaleDateString('id-ID', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+                        const timeStr = date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                        
+                        html += `
+                            <div class="consultation-item">
+                                <div class="consultation-date">📅 ${dateStr} • ⏰ ${timeStr}</div>
+                                <div class="consultation-message">❓ ${consultation.message}</div>
+                                ${consultation.doctorReply ? `
+                                    <div class="doctor-reply">
+                                        <strong>👨‍⚕️ Balasan Dokter:</strong><br>
+                                        ${consultation.doctorReply}
+                                    </div>
+                                ` : '<div class="info-box" style="margin: 0;">⏳ Menunggu balasan dokter...</div>'}
+                            </div>
+                        `;
+                    });
+                }
+
+                html += `
+                            <button class="btn-primary" onclick="showKirimKonsultasi()" style="margin-top: 15px;">✏️ Kirim Pertanyaan Baru</button>
+                            <button class="btn-secondary" onclick="showKonsulPage()">Kembali</button>
+                        </div>
+                    </div>
+                `;
+
+                app.innerHTML = html;
+            } catch (error) {
+                const app = document.getElementById('app');
+                app.innerHTML = `
+                    <div class="container">
+                        <div class="header">
+                            <h1>❌ ERROR</h1>
+                        </div>
+                        <div class="content">
+                            <div class="error-message">Gagal memuat riwayat: ${error.message}</div>
+                            <button class="btn-secondary" onclick="showKonsulPage()">Kembali</button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // ==================== FUNGSI UMUM ====================
+        
+        function logout() {
+            if (confirm('⚠️ Anda yakin ingin logout?')) {
+                currentUser = null;
+                currentToken = null;
+                currentQueue = null;
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                showAuthChoice();
+            }
+        }
+
+        function showError(elementId, message) {
+            const errorElement = document.getElementById(elementId);
+            if (errorElement) {
+                errorElement.innerHTML = `<div class="error-message">${message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>
