@@ -241,8 +241,10 @@ var noteStore={};     // nid -> raw note text
 /* ══ SIDEBAR ══ */
 function setSTab(t){
   curSTab=t;
+  var cls=(t==='icd10')?'t10':'t9';
   document.querySelectorAll('.stab').forEach(function(b){b.classList.remove('on');});
-  document.querySelector('.stab.'+t).classList.add('on');
+  var btn=document.querySelector('.stab.'+cls);
+  if(btn) btn.classList.add('on');
   renderSide();
 }
 
@@ -520,22 +522,30 @@ function showLang(nid, lang){
       messages:[{role:'user',content:prompt}]
     })
   })
-  .then(function(r){return r.json();})
+  .then(function(r){
+    if(!r.ok){ throw new Error('HTTP '+r.status); }
+    return r.json();
+  })
   .then(function(data){
-    var txt=data.content&&data.content[0]?data.content[0].text:'';
+    var txt='';
+    if(data && data.content){
+      for(var ci=0;ci<data.content.length;ci++){
+        if(data.content[ci].type==='text'){ txt+=data.content[ci].text; }
+      }
+    }
     if(txt){
       var result='<p style="margin-bottom:5px;font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--ac2)">&#127470;&#127465; TERJEMAHAN INDONESIA</p>'
         +'<p>'+txt.replace(/\n\n/g,'</p><p>').replace(/\n/g,' ')+'</p>';
       trCache[nid]=result;
       idBox.innerHTML=result;
     } else {
-      idBox.innerHTML='<p style="color:var(--red)">&#10060; Terjemahan gagal. Silakan coba lagi.</p>';
+      idBox.innerHTML='<p style="color:var(--red)">&#10060; Terjemahan kosong. Silakan coba lagi.</p>';
       enBtn.className='nlang-btn active-en'; idBtn.className='nlang-btn';
       enBox.style.display=''; idBox.style.display='none';
     }
   })
-  .catch(function(){
-    idBox.innerHTML='<p style="color:var(--red)">&#10060; Gagal terhubung. Cek koneksi internet.</p>';
+  .catch(function(err){
+    idBox.innerHTML='<p style="color:var(--red)">&#10060; Terjemahan gagal: '+escHtml(err&&err.message?err.message:'tidak diketahui')+'. Klik lagi untuk mencoba.</p>';
     enBtn.className='nlang-btn active-en'; idBtn.className='nlang-btn';
     enBox.style.display=''; idBox.style.display='none';
   })
