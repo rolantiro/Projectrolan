@@ -1,0 +1,19 @@
+﻿[
+  {
+    "name": "decoded_data.json",
+    "path": "data/decoded_data.json",
+    "sha": "8bda53edb99ace66e4e20a5451e7c0015b00c9ea",
+    "size": 5005930,
+    "url": "https://api.github.com/repos/shweta-ederm/icd10-browser-json/contents/data/decoded_data.json?ref=main",
+    "html_url": "https://github.com/shweta-ederm/icd10-browser-json/blob/main/data/decoded_data.json",
+    "git_url": "https://api.github.com/repos/shweta-ederm/icd10-browser-json/git/blobs/8bda53edb99ace66e4e20a5451e7c0015b00c9ea",
+    "download_url": "https://raw.githubusercontent.com/shweta-ederm/icd10-browser-json/main/data/decoded_data.json",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/shweta-ederm/icd10-browser-json/contents/data/decoded_data.json?ref=main",
+      "git": "https://api.github.com/repos/shweta-ederm/icd10-browser-json/git/blobs/8bda53edb99ace66e4e20a5451e7c0015b00c9ea",
+      "html": "https://github.com/shweta-ederm/icd10-browser-json/blob/main/data/decoded_data.json"
+    }
+  }
+]
+
