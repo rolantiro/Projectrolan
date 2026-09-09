@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CV & Lamaran Personalizer</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
+<style>
+:root{
+  --ink:#20242B; --ink-soft:#565F6E; --paper:#F7F5EF; --paper-2:#FFFFFF;
+  --line:#DCD7C9; --navy:#2A4B7C; --navy-deep:#1C3459; --gold:#A9762F;
+  --ok:#2F6F4E; --err:#9C3B2E; --radius:10px;
+  --serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+  --sans: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased;}
+h1,h2,h3{font-family:var(--serif);font-weight:600;margin:0 0 6px;}
+p{margin:0 0 12px;color:var(--ink-soft);}
+button{font-family:var(--sans);cursor:pointer;}
+input,select,textarea{font-family:var(--sans);}
+::selection{background:#C9D8EC;}
+
+/* App shell */
+#app{display:flex;min-height:100vh;}
+#sidebar{width:220px;flex-shrink:0;background:var(--navy-deep);color:#EDE9DC;padding:22px 14px;position:sticky;top:0;height:100vh;overflow-y:auto;}
+#sidebar .brand{font-family:var(--serif);font-size:19px;line-height:1.25;padding:0 10px 20px;border-bottom:1px solid rgba(255,255,255,.15);margin-bottom:16px;}
+#sidebar .brand small{display:block;font-family:var(--sans);font-size:11px;letter-spacing:.03em;color:#B9C3D6;margin-top:3px;}
+.navbtn{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:none;color:#D9DEEA;padding:10px 12px;border-radius:8px;font-size:14.5px;margin-bottom:2px;}
+.navbtn:hover{background:rgba(255,255,255,.08);}
+.navbtn.active{background:var(--navy);color:#fff;}
+.navbtn .dot{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.55;flex-shrink:0;}
+#main{flex:1;min-width:0;padding:28px 34px 60px;max-width:900px;}
+.view{display:none;}
+.view.active{display:block;animation:rise .25s ease;}
+@keyframes rise{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+/* Mobile */
+#topbar{display:none;position:sticky;top:0;z-index:20;background:var(--navy-deep);color:#fff;padding:12px 16px;align-items:center;justify-content:space-between;}
+#topbar .brand{font-family:var(--serif);font-size:17px;}
+#topbar button{background:none;border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:7px;padding:6px 10px;font-size:13px;}
+@media(max-width:820px){
+  #sidebar{position:fixed;left:-260px;top:0;z-index:30;transition:left .2s ease;width:230px;}
+  #sidebar.open{left:0;}
+  #topbar{display:flex;}
+  #main{padding:18px 16px 60px;}
+  #overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:25;}
+  #overlay.show{display:block;}
+}
+
+/* Cards & primitives */
+.card{background:var(--paper-2);border:1px solid var(--line);border-radius:var(--radius);padding:22px;margin-bottom:18px;}
+.eyebrow{color:var(--gold);font-size:13px;margin-bottom:4px;}
+.field{margin-bottom:15px;}
+.field label{display:block;font-size:13.5px;color:var(--ink);margin-bottom:5px;font-weight:600;}
+.field .hint{font-size:12px;color:var(--ink-soft);font-weight:400;margin-left:6px;}
+.field input[type=text],.field input[type=date],.field textarea,.field input[type=email],.field input[type=tel]{
+  width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:7px;background:#fff;font-size:14.5px;color:var(--ink);}
+.field input:focus,.field textarea:focus{outline:2px solid var(--navy);outline-offset:1px;border-color:var(--navy);}
+.field textarea{resize:vertical;min-height:64px;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:600px){.row2{grid-template-columns:1fr;}}
+
+.btn{display:inline-flex;align-items:center;gap:7px;border-radius:8px;border:1px solid transparent;padding:10px 18px;font-size:14.5px;font-weight:600;}
+.btn-primary{background:var(--navy);color:#fff;}
+.btn-primary:hover{background:var(--navy-deep);}
+.btn-ghost{background:#fff;border-color:var(--line);color:var(--ink);}
+.btn-ghost:hover{border-color:var(--navy);}
+.btn-danger{background:#fff;border-color:#E3C9C4;color:var(--err);}
+.btn-danger:hover{background:#FBF1EF;}
+.btn:disabled{opacity:.45;cursor:not-allowed;}
+.btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
+
+/* Stepper */
+.stepper{display:flex;align-items:center;gap:0;margin-bottom:24px;flex-wrap:wrap;}
+.step{display:flex;align-items:center;gap:8px;color:var(--ink-soft);font-size:13px;}
+.step .n{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;color:var(--ink-soft);flex-shrink:0;}
+.step.done .n{background:var(--ok);border-color:var(--ok);color:#fff;}
+.step.current .n{background:var(--navy);border-color:var(--navy);color:#fff;}
+.step.current span.label{color:var(--ink);font-weight:700;}
+.steplink{width:26px;height:1.5px;background:var(--line);margin:0 6px;}
+
+/* Upload */
+.dropzone{border:2px dashed var(--line);border-radius:var(--radius);padding:44px 20px;text-align:center;background:#FCFBF7;transition:.15s;}
+.dropzone.drag{border-color:var(--navy);background:#EEF2F8;}
+.dropzone .icon{font-size:30px;margin-bottom:10px;}
+.filepill{display:flex;align-items:center;justify-content:space-between;background:#F0EEE5;border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin-top:14px;font-size:14px;}
+.filepill b{font-weight:600;}
+.muted{color:var(--ink-soft);font-size:13px;}
+
+/* detected list */
+.detect-row{display:grid;grid-template-columns:150px 1fr;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);}
+.detect-row:last-child{border-bottom:none;}
+.detect-row label{font-size:13px;color:var(--ink-soft);font-weight:600;}
+.tag{display:inline-block;font-size:11px;background:#EAF1EA;color:var(--ok);border-radius:5px;padding:2px 7px;margin-left:6px;}
+.tag.manual{background:#F5EAE0;color:var(--gold);}
+
+/* Preview */
+#printArea{background:#fff;border:1px solid var(--line);box-shadow:0 1px 3px rgba(0,0,0,.06);padding:40px 46px;max-width:680px;margin:0 auto;font-size:14px;color:#1a1a1a;min-height:400px;}
+#printArea img{max-width:100%;}
+.preview-meta{display:flex;flex-wrap:wrap;gap:22px;margin:16px 0 20px;font-size:13.5px;}
+.preview-meta div b{display:block;color:var(--ink-soft);font-weight:600;font-size:11.5px;text-transform:none;margin-bottom:2px;}
+.badge-ok{display:inline-flex;align-items:center;gap:6px;background:#EAF3EC;color:var(--ok);border-radius:20px;padding:5px 13px;font-size:13px;font-weight:600;}
+
+/* dashboard stat cards */
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px;}
+@media(max-width:650px){.stat-grid{grid-template-columns:1fr;}}
+.stat{background:var(--paper-2);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;}
+.stat .num{font-family:var(--serif);font-size:26px;}
+.stat .lbl{font-size:12.5px;color:var(--ink-soft);}
+
+table{width:100%;border-collapse:collapse;font-size:13.5px;}
+th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);}
+th{color:var(--ink-soft);font-weight:600;font-size:12px;}
+.linkbtn{background:none;border:none;color:var(--navy);font-weight:600;font-size:13px;padding:0;}
+.linkbtn.danger{color:var(--err);}
+.empty{text-align:center;padding:40px 10px;color:var(--ink-soft);}
+
+.alert{border-radius:8px;padding:12px 14px;font-size:13.5px;margin-bottom:16px;}
+.alert-err{background:#FBEEEC;color:var(--err);border:1px solid #EBCFC9;}
+.alert-warn{background:#FBF3E4;color:#8A5A12;border:1px solid #EEDCB4;}
+.alert-info{background:#EAF1F8;color:var(--navy-deep);border:1px solid #CFDDEC;}
+
+/* print isolation */
+@media print{
+  body *{visibility:hidden;}
+  #printArea, #printArea *{visibility:visible;}
+  #printArea{position:absolute;left:0;top:0;box-shadow:none;border:none;padding:0;max-width:none;width:100%;}
+}
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div class="brand">CV & Lamaran Personalizer</div>
+  <button onclick="toggleSidebar()">Menu</button>
+</div>
+<div id="overlay" onclick="toggleSidebar()"></div>
+
+<div id="app">
+  <nav id="sidebar">
+    <div class="brand">CV & Lamaran<br>Personalizer<small>Sesuaikan lamaran dalam hitungan menit</small></div>
+    <button class="navbtn" data-view="dashboard" onclick="go('dashboard')"><span class="dot"></span>Dashboard</button>
+    <button class="navbtn" data-view="wizard" onclick="go('wizard')"><span class="dot"></span>Buat Dokumen</button>
+    <button class="navbtn" data-view="profile" onclick="go('profile')"><span class="dot"></span>Data Saya</button>
+    <button class="navbtn" data-view="history" onclick="go('history')"><span class="dot"></span>Riwayat</button>
+    <button class="navbtn" data-view="settings" onclick="go('settings')"><span class="dot"></span>Pengaturan</button>
+  </nav>
+
+  <main id="main">
+
+    <!-- DASHBOARD -->
+    <section class="view" id="view-dashboard">
+      <h1>Siap membuat lamaran baru?</h1>
+      <p>Upload satu template Word, isi tujuan perusahaan, dan unduh PDF yang rapi &mdash; tanpa mengedit dokumen manual.</p>
+      <button class="btn btn-primary" onclick="startNew()">+ Buat Dokumen</button>
+      <div class="stat-grid">
+        <div class="stat"><div class="num" id="stat-count">0</div><div class="lbl">Dokumen dibuat</div></div>
+        <div class="stat"><div class="num" id="stat-last">&mdash;</div><div class="lbl">Dokumen terakhir</div></div>
+        <div class="stat"><div class="num" id="stat-template">Belum ada</div><div class="lbl">Template aktif</div></div>
+      </div>
+    </section>
+
+    <!-- WIZARD -->
+    <section class="view" id="view-wizard">
+      <div class="stepper" id="stepper"></div>
+
+      <!-- step: upload -->
+      <div class="wstep" id="wstep-upload">
+        <div class="card">
+          <div class="eyebrow">Langkah 1</div>
+          <h2>Sesuaikan Dokumen Lamaranmu</h2>
+          <p>Upload CV atau surat lamaran Word kamu, lalu biarkan sistem menyesuaikan informasi tujuan secara otomatis.</p>
+          <div class="dropzone" id="dropzone">
+            <div class="icon">📄</div>
+            <div><b>Seret &amp; lepas file .docx di sini</b></div>
+            <div class="muted">atau</div>
+            <button class="btn btn-ghost" style="margin-top:10px" onclick="document.getElementById('fileInput').click()">Pilih File</button>
+            <input type="file" id="fileInput" accept=".docx" style="display:none">
+          </div>
+          <div id="filepill-wrap"></div>
+          <div id="upload-error"></div>
+          <div class="btnrow">
+            <button class="btn btn-primary" id="btn-scan" disabled onclick="scanDocument()">Scan Dokumen</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- step: scan/data -->
+      <div class="wstep" id="wstep-data" style="display:none">
+        <div class="card">
+          <div class="eyebrow">Langkah 2&ndash;3</div>
+          <h2>Informasi Terdeteksi</h2>
+          <p id="scan-summary" class="muted"></p>
+          <div id="detect-list"></div>
+        </div>
+        <div class="card">
+          <div class="eyebrow">Langkah 4</div>
+          <h2>Tujuan Lamaran</h2>
+          <div class="row2">
+            <div class="field"><label>Nama Perusahaan</label><input type="text" id="f-perusahaan" placeholder="Contoh: PT ABC Indonesia"></div>
+            <div class="field"><label>Posisi yang Dilamar</label><input type="text" id="f-posisi" placeholder="Contoh: Graphic Designer"></div>
+            <div class="field"><label>Bagian / Departemen <span class="hint">opsional</span></label><input type="text" id="f-bagian" placeholder="Contoh: Creative Department"></div>
+            <div class="field"><label>Kota</label><input type="text" id="f-kota" placeholder="Contoh: Bandar Lampung"></div>
+          </div>
+          <div class="field"><label>Alamat Perusahaan</label><textarea id="f-alamat" placeholder="Jl. Contoh No. 123"></textarea></div>
+          <div class="row2">
+            <div class="field"><label>Nama Penerima <span class="hint">opsional</span></label><input type="text" id="f-penerima" placeholder="Contoh: Ibu/Bapak HRD"></div>
+            <div class="field"><label>Tanggal Surat</label><input type="date" id="f-tanggal"></div>
+          </div>
+          <div class="btnrow">
+            <button class="btn btn-ghost" onclick="useMyProfile()">Gunakan Alamat Saya</button>
+          </div>
+        </div>
+        <div class="btnrow">
+          <button class="btn btn-ghost" onclick="showWizardStep('upload')">Kembali</button>
+          <button class="btn btn-primary" onclick="processDocument()">Proses Dokumen</button>
+        </div>
+      </div>
+
+      <!-- step: preview -->
+      <div class="wstep" id="wstep-preview" style="display:none">
+        <div class="card">
+          <div class="eyebrow">Langkah 5</div>
+          <h2>Preview Dokumen</h2>
+          <div id="preview-alert"></div>
+          <div class="preview-meta">
+            <div><b>Nama file</b><span id="pv-filename">&mdash;</span></div>
+            <div><b>Ukuran perkiraan</b><span id="pv-size">&mdash;</span></div>
+            <div><b>Status</b><span id="pv-status">&mdash;</span></div>
+          </div>
+          <div class="btnrow">
+            <button class="btn btn-ghost" onclick="showWizardStep('data')">Edit Data</button>
+            <button class="btn btn-ghost" onclick="processDocument()">Proses Ulang</button>
+            <button class="btn btn-primary" onclick="downloadPdf()">Download PDF</button>
+            <button class="btn btn-ghost" onclick="downloadDocx()">Download DOCX</button>
+          </div>
+        </div>
+        <div id="printArea"></div>
+      </div>
+    </section>
+
+    <!-- PROFILE -->
+    <section class="view" id="view-profile">
+      <h1>Data Saya</h1>
+      <p>Simpan alamat pribadimu agar tidak perlu diketik ulang setiap kali membuat dokumen. Data ini hanya disimpan di browser kamu, tidak dikirim ke server manapun.</p>
+      <div class="card">
+        <div class="row2">
+          <div class="field"><label>Nama Lengkap</label><input type="text" id="p-nama"></div>
+          <div class="field"><label>Nomor Telepon</label><input type="tel" id="p-telepon"></div>
+        </div>
+        <div class="field"><label>Alamat</label><textarea id="p-alamat"></textarea></div>
+        <div class="row2">
+          <div class="field"><label>Kelurahan/Desa</label><input type="text" id="p-kelurahan"></div>
+          <div class="field"><label>Kecamatan</label><input type="text" id="p-kecamatan"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Kota/Kabupaten</label><input type="text" id="p-kota"></div>
+          <div class="field"><label>Provinsi</label><input type="text" id="p-provinsi"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Kode Pos</label><input type="text" id="p-kodepos"></div>
+          <div class="field"><label>Email</label><input type="email" id="p-email"></div>
+        </div>
+        <div class="btnrow">
+          <button class="btn btn-primary" onclick="saveProfile()">Simpan Data Saya</button>
+          <span class="muted" id="profile-saved-msg"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- HISTORY -->
+    <section class="view" id="view-history">
+      <h1>Riwayat</h1>
+      <p>Dokumen yang pernah kamu buat, disimpan secara lokal di browser ini.</p>
+      <div class="card" id="history-wrap"></div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section class="view" id="view-settings">
+      <h1>Pengaturan</h1>
+      <div class="card">
+        <h2>Privasi &amp; Data</h2>
+        <p>CV dan surat lamaran dapat memuat data pribadi. Semua pemrosesan dokumen di aplikasi ini berjalan langsung di browser kamu &mdash; file tidak diunggah ke server manapun. Data profil dan riwayat tersimpan di local storage browser ini saja.</p>
+        <button class="btn btn-danger" onclick="wipeAll()">Hapus Semua Data Saya</button>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+/* ---------- storage ---------- */
+const LS_PROFILE='cvlp_profile', LS_HISTORY='cvlp_history';
+const getProfile=()=>JSON.parse(localStorage.getItem(LS_PROFILE)||'{}');
+const setProfile=(p)=>localStorage.setItem(LS_PROFILE, JSON.stringify(p));
+const getHistory=()=>JSON.parse(localStorage.getItem(LS_HISTORY)||'[]');
+const setHistory=(h)=>localStorage.setItem(LS_HISTORY, JSON.stringify(h.slice(0,20))); // ponytail: cap 20 entries, avoids localStorage quota blowups
+
+/* ---------- nav ---------- */
+function go(view){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active', b.dataset.view===view));
+  if(view==='dashboard') renderDashboard();
+  if(view==='profile') renderProfileForm();
+  if(view==='history') renderHistory();
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+  window.scrollTo(0,0);
+}
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('show');
+}
+function startNew(){
+  resetWizard();
+  go('wizard');
+  showWizardStep('upload');
+}
+
+/* ---------- stepper ---------- */
+const STEPS=[['upload','Upload'],['data','Data'],['preview','Preview']];
+function renderStepper(current){
+  const map={upload:0,data:1,preview:1};
+  const idx = current==='preview'?2:(current==='data'?1:0);
+  document.getElementById('stepper').innerHTML = STEPS.map((s,i)=>{
+    const cls = i<idx?'done':(i===idx?'current':'');
+    return `<div class="step ${cls}"><div class="n">${i<idx?'✓':i+1}</div><span class="label">${s[1]}</span></div>` + (i<STEPS.length-1?'<div class="steplink"></div>':'');
+  }).join('');
+}
+function showWizardStep(step){
+  ['upload','data','preview'].forEach(s=>{
+    document.getElementById('wstep-'+s).style.display = (s===step?'':'none');
+  });
+  renderStepper(step);
+}
+
+/* ---------- wizard state ---------- */
+let state = { file:null, zip:null, xml:null, tokens:[], docxBlob:null, htmlPreview:null, meta:{} };
+function resetWizard(){
+  state = { file:null, zip:null, xml:null, tokens:[], docxBlob:null, htmlPreview:null, meta:{} };
+  document.getElementById('fileInput').value='';
+  document.getElementById('filepill-wrap').innerHTML='';
+  document.getElementById('upload-error').innerHTML='';
+  document.getElementById('btn-scan').disabled = true;
+  document.getElementById('f-tanggal').value = new Date().toISOString().slice(0,10);
+}
+
+/* ---------- upload ---------- */
+const dz = document.getElementById('dropzone');
+['dragenter','dragover'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add('drag');}));
+['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove('drag');}));
+dz.addEventListener('drop', e=>{ if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+document.getElementById('fileInput').addEventListener('change', e=>{ if(e.target.files[0]) handleFile(e.target.files[0]); });
+
+function fmtSize(bytes){
+  if(bytes<1024) return bytes+' B';
+  if(bytes<1024*1024) return (bytes/1024).toFixed(1)+' KB';
+  return (bytes/(1024*1024)).toFixed(2)+' MB';
+}
+
+function handleFile(file){
+  const errBox = document.getElementById('upload-error');
+  errBox.innerHTML='';
+  if(!file.name.toLowerCase().endsWith('.docx')){
+    errBox.innerHTML = `<div class="alert alert-err"><b>Dokumen tidak dapat diproses.</b><br>Pastikan file yang kamu upload berformat .docx dan tidak rusak.</div>`;
+    document.getElementById('btn-scan').disabled = true;
+    return;
+  }
+  state.file = file;
+  document.getElementById('filepill-wrap').innerHTML =
+    `<div class="filepill"><span>📎 <b>${escapeHtml(file.name)}</b></span><span class="muted">${fmtSize(file.size)}</span></div>`;
+  document.getElementById('btn-scan').disabled = false;
+}
+
+/* ---------- scan ---------- */
+const KNOWN_CURLY = ['NAMA_PERUSAHAAN','POSISI','BAGIAN','ALAMAT_PERUSAHAAN','KOTA_PERUSAHAAN','NAMA_PENERIMA','TANGGAL','NAMA_LENGKAP','ALAMAT_SAYA','KOTA_SAYA','TELEPON','EMAIL'];
+const FIELD_LABEL = {
+  NAMA_PERUSAHAAN:'Nama perusahaan', POSISI:'Posisi', BAGIAN:'Bagian', ALAMAT_PERUSAHAAN:'Alamat perusahaan',
+  KOTA_PERUSAHAAN:'Kota', NAMA_PENERIMA:'Nama penerima', TANGGAL:'Tanggal', NAMA_LENGKAP:'Nama lengkap',
+  ALAMAT_SAYA:'Alamat saya', KOTA_SAYA:'Kota saya', TELEPON:'Telepon', EMAIL:'Email'
+};
+function guessFieldFromBracket(text){
+  const u = text.toUpperCase();
+  if(u.includes('PERUSAHAAN')||u.includes('INSTANSI')) return 'NAMA_PERUSAHAAN';
+  if(u.includes('POSISI')||u.includes('JABATAN')) return 'POSISI';
+  if(u.includes('BAGIAN')||u.includes('DIVISI')||u.includes('DEPARTEMEN')) return 'BAGIAN';
+  if(u.includes('ALAMAT')) return 'ALAMAT_PERUSAHAAN';
+  if(u.includes('KOTA')) return 'KOTA_PERUSAHAAN';
+  if(u.includes('TANGGAL')||u.includes('TGL')) return 'TANGGAL';
+  if(u.includes('PENERIMA')||u.includes('HRD')||u.includes('YTH')) return 'NAMA_PENERIMA';
+  return null;
+}
+
+async function scanDocument(){
+  const errBox = document.getElementById('upload-error');
+  errBox.innerHTML='';
+  try{
+    const buf = await state.file.arrayBuffer();
+    const zip = await JSZip.loadAsync(buf);
+    const docFile = zip.file('word/document.xml');
+    if(!docFile) throw new Error('no document.xml');
+    const xml = await docFile.async('string');
+    state.zip = zip; state.xml = xml;
+
+    // ponytail: detection runs per <w:t> run; a placeholder split across
+    // two Word runs (rare, but possible after manual re-typing) won't be
+    // caught. Upgrade path: merge adjacent runs before matching if reports come in.
+    const runRe = /<w:t[^>]*>([^<]*)<\/w:t>/g;
+    const tokensFound = new Map(); // key -> {kind, raw, field}
+    let m;
+    while((m = runRe.exec(xml))){
+      const txt = m[1];
+      let cm;
+      const curly = /\{\{\s*([A-Z_]+)\s*\}\}/g;
+      while((cm = curly.exec(txt))){
+        const field = cm[1];
+        if(KNOWN_CURLY.includes(field)) tokensFound.set('{{'+field+'}}', {kind:'curly', raw:'{{'+field+'}}', field});
+      }
+      const brackets = /\[([^\[\]\r\n]{2,40})\]/g;
+      let bm;
+      while((bm = brackets.exec(txt))){
+        const raw = '['+bm[1]+']';
+        const field = guessFieldFromBracket(bm[1]);
+        if(!tokensFound.has(raw)) tokensFound.set(raw, {kind:'bracket', raw, field, label:bm[1]});
+      }
+    }
+    state.tokens = Array.from(tokensFound.values());
+
+    if(state.tokens.length===0){
+      document.getElementById('scan-summary').innerHTML =
+        `Kami tidak menemukan informasi tujuan secara otomatis pada dokumen ini. Masukkan datanya secara manual di form Tujuan Lamaran di bawah &mdash; sistem akan menyisipkannya di akhir dokumen.`;
+    } else {
+      const known = state.tokens.filter(t=>t.field).length;
+      document.getElementById('scan-summary').innerHTML =
+        `Ditemukan <b>${state.tokens.length}</b> placeholder pada dokumen (${known} dikenali otomatis). Periksa hasil di bawah, lalu lengkapi Tujuan Lamaran.`;
+    }
+    renderDetectList();
+    document.getElementById('f-tanggal').value = document.getElementById('f-tanggal').value || new Date().toISOString().slice(0,10);
+    showWizardStep('data');
+  }catch(e){
+    errBox.innerHTML = `<div class="alert alert-err"><b>Dokumen tidak dapat diproses.</b><br>Pastikan file yang kamu upload berformat .docx dan tidak rusak.</div>`;
+  }
+}
+
+function renderDetectList(){
+  const wrap = document.getElementById('detect-list');
+  if(state.tokens.length===0){ wrap.innerHTML = ''; return; }
+  wrap.innerHTML = state.tokens.map((t,i)=>{
+    const label = t.field ? FIELD_LABEL[t.field] : (t.label || t.raw);
+    const tag = t.field ? `<span class="tag">terdeteksi</span>` : `<span class="tag manual">perlu diisi manual</span>`;
+    return `<div class="detect-row"><label>${escapeHtml(t.raw)}</label><div>${escapeHtml(label)} ${tag}
+      ${!t.field ? `<input type="text" style="margin-top:6px;width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:6px" data-manual-idx="${i}" placeholder="Isi teks pengganti...">` : ''}
+    </div></div>`;
+  }).join('');
+}
+
+function useMyProfile(){
+  const p = getProfile();
+  // fills fields that map to personal-address placeholders when we later replace curly tokens
+  state.meta.useProfile = true;
+  document.getElementById('profile-saved-msg').textContent='';
+  alert('Alamat pribadimu akan disisipkan otomatis ke placeholder {{NAMA_LENGKAP}}, {{ALAMAT_SAYA}}, dll saat dokumen diproses.');
+}
+
+/* ---------- process / replace ---------- */
+function sanitizeFilePart(s){
+  return (s||'Dokumen').trim().replace(/[\\\/:*?"<>|]/g,'').replace(/\s+/g,'-');
+}
+
+async function processDocument(){
+  if(!state.xml){ return; }
+  const vals = {
+    NAMA_PERUSAHAAN: document.getElementById('f-perusahaan').value.trim(),
+    POSISI: document.getElementById('f-posisi').value.trim(),
+    BAGIAN: document.getElementById('f-bagian').value.trim(),
+    ALAMAT_PERUSAHAAN: document.getElementById('f-alamat').value.trim(),
+    KOTA_PERUSAHAAN: document.getElementById('f-kota').value.trim(),
+    NAMA_PENERIMA: document.getElementById('f-penerima').value.trim(),
+    TANGGAL: formatTanggalID(document.getElementById('f-tanggal').value),
+  };
+  const profile = getProfile();
+  Object.assign(vals, {
+    NAMA_LENGKAP: profile.nama||'', ALAMAT_SAYA: profile.alamat||'', KOTA_SAYA: profile.kota||'',
+    TELEPON: profile.telepon||'', EMAIL: profile.email||''
+  });
+
+  // manual overrides for unmapped bracket tokens
+  const manualInputs = document.querySelectorAll('[data-manual-idx]');
+  const manualMap = {};
+  manualInputs.forEach(inp=>{ manualMap[state.tokens[inp.dataset.manualIdx].raw] = inp.value; });
+
+  // replace only inside <w:t> runs so all formatting XML stays untouched
+  let xml = state.xml.replace(/<w:t([^>]*)>([^<]*)<\/w:t>/g, (whole, attrs, txt)=>{
+    let out = txt;
+    KNOWN_CURLY.forEach(f=>{ out = out.split('{{'+f+'}}').join(escapeXml(vals[f]||'')); });
+    state.tokens.filter(t=>t.kind==='bracket').forEach(t=>{
+      const repl = t.field ? (vals[t.field]||'') : (manualMap[t.raw]||'');
+      out = out.split(t.raw).join(escapeXml(repl));
+    });
+    return `<w:t${attrs}>${out}</w:t>`;
+  });
+
+  const zip = state.zip;
+  zip.file('word/document.xml', xml);
+  const blob = await zip.generateAsync({type:'blob', mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+  state.docxBlob = blob;
+
+  const fname = `Lamaran_${sanitizeFilePart(vals.NAMA_PERUSAHAAN)}_${sanitizeFilePart(vals.POSISI)}`;
+  state.meta = {...state.meta, filename: fname, perusahaan: vals.NAMA_PERUSAHAAN||'-', posisi: vals.POSISI||'-', size: blob.size};
+
+  // preview via mammoth
+  const arrBuf = await blob.arrayBuffer();
+  const result = await mammoth.convertToHtml({arrayBuffer:arrBuf});
+  state.htmlPreview = result.value;
+  document.getElementById('printArea').innerHTML = state.htmlPreview || '<p style="color:#999">(Dokumen kosong)</p>';
+
+  renderPreviewMeta();
+  showWizardStep('preview');
+  addToHistory(blob, state.meta);
+}
+
+function formatTanggalID(iso){
+  if(!iso) return '';
+  const d = new Date(iso+'T00:00:00');
+  const bulan=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  return `${d.getDate()} ${bulan[d.getMonth()]} ${d.getFullYear()}`;
+}
+function escapeXml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escapeHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function renderPreviewMeta(){
+  document.getElementById('pv-filename').textContent = state.meta.filename + '.pdf';
+  document.getElementById('pv-size').textContent = fmtSize(state.meta.size) + ' (docx)';
+  const alertBox = document.getElementById('preview-alert');
+  const under2mb = state.meta.size < 2*1024*1024;
+  document.getElementById('pv-status').innerHTML = under2mb
+    ? `<span class="badge-ok">✓ Siap dikirim</span>` : `Perlu dioptimalkan`;
+  alertBox.innerHTML = under2mb ? '' :
+    `<div class="alert alert-warn">File dasar berukuran ${fmtSize(state.meta.size)}, kemungkinan karena gambar/logo besar di template. Kompres gambar pada dokumen asli sebelum upload agar PDF akhir tetap ringan &mdash; kompresi otomatis untuk gambar belum tersedia di versi ini.</div>`;
+}
+
+/* ---------- export ---------- */
+function downloadPdf(){
+  const originalTitle = document.title;
+  document.title = state.meta.filename; // Chrome/Edge suggest this as the save-as-PDF filename
+  const restore = ()=>{ document.title = originalTitle; window.removeEventListener('afterprint', restore); };
+  window.addEventListener('afterprint', restore);
+  window.print();
+}
+function downloadDocx(){
+  if(!state.docxBlob) return;
+  const url = URL.createObjectURL(state.docxBlob);
+  const a = document.createElement('a');
+  a.href = url; a.download = state.meta.filename + '.docx';
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+
+/* ---------- history (metadata always; small docx blobs kept as base64 best-effort) ---------- */
+async function addToHistory(blob, meta){
+  const hist = getHistory();
+  let b64 = null;
+  try{
+    if(blob.size < 3*1024*1024){ // ponytail: skip storing bigger blobs, localStorage quota is ~5MB total
+      b64 = await blobToBase64(blob);
+    }
+  }catch(e){ b64 = null; }
+  hist.unshift({ perusahaan: meta.perusahaan, posisi: meta.posisi, tanggal: new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}), size: fmtSize(meta.size), filename: meta.filename, docx: b64 });
+  setHistory(hist);
+}
+function blobToBase64(blob){
+  return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(blob); });
+}
+
+/* ---------- dashboard ---------- */
+function renderDashboard(){
+  const hist = getHistory();
+  document.getElementById('stat-count').textContent = hist.length;
+  document.getElementById('stat-last').textContent = hist.length ? `${hist[0].perusahaan}` : '\u2014';
+  document.getElementById('stat-template').textContent = state.file ? state.file.name : (hist.length ? 'Template terakhir dipakai' : 'Belum ada');
+}
+
+/* ---------- profile ---------- */
+function renderProfileForm(){
+  const p = getProfile();
+  document.getElementById('p-nama').value = p.nama||'';
+  document.getElementById('p-telepon').value = p.telepon||'';
+  document.getElementById('p-alamat').value = p.alamat||'';
+  document.getElementById('p-kelurahan').value = p.kelurahan||'';
+  document.getElementById('p-kecamatan').value = p.kecamatan||'';
+  document.getElementById('p-kota').value = p.kota||'';
+  document.getElementById('p-provinsi').value = p.provinsi||'';
+  document.getElementById('p-kodepos').value = p.kodepos||'';
+  document.getElementById('p-email').value = p.email||'';
+}
+function saveProfile(){
+  const p = {
+    nama: document.getElementById('p-nama').value.trim(),
+    telepon: document.getElementById('p-telepon').value.trim(),
+    alamat: document.getElementById('p-alamat').value.trim(),
+    kelurahan: document.getElementById('p-kelurahan').value.trim(),
+    kecamatan: document.getElementById('p-kecamatan').value.trim(),
+    kota: document.getElementById('p-kota').value.trim(),
+    provinsi: document.getElementById('p-provinsi').value.trim(),
+    kodepos: document.getElementById('p-kodepos').value.trim(),
+    email: document.getElementById('p-email').value.trim(),
+  };
+  setProfile(p);
+  const msg = document.getElementById('profile-saved-msg');
+  msg.textContent = 'Tersimpan di browser ini.';
+  setTimeout(()=>msg.textContent='', 2500);
+}
+
+/* ---------- history view ---------- */
+function renderHistory(){
+  const hist = getHistory();
+  const wrap = document.getElementById('history-wrap');
+  if(hist.length===0){ wrap.innerHTML = `<div class="empty">Belum ada dokumen. Riwayat akan muncul di sini setelah kamu membuat lamaran.</div>`; return; }
+  wrap.innerHTML = `<table><thead><tr><th>Perusahaan</th><th>Posisi</th><th>Tanggal</th><th>Ukuran</th><th>Aksi</th></tr></thead><tbody>
+    ${hist.map((h,i)=>`<tr>
+      <td>${escapeHtml(h.perusahaan)}</td><td>${escapeHtml(h.posisi)}</td><td>${h.tanggal}</td><td>${h.size}</td>
+      <td>${h.docx?`<button class="linkbtn" onclick="redownload(${i})">Download</button>`:'<span class="muted">tidak tersimpan</span>'}
+      &nbsp;&middot;&nbsp;<button class="linkbtn danger" onclick="deleteHistory(${i})">Hapus</button></td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+function redownload(i){
+  const hist = getHistory();
+  const h = hist[i];
+  if(!h.docx) return;
+  const a = document.createElement('a');
+  a.href = h.docx; a.download = h.filename + '.docx';
+  document.body.appendChild(a); a.click(); a.remove();
+}
+function deleteHistory(i){
+  const hist = getHistory(); hist.splice(i,1); setHistory(hist); renderHistory();
+}
+
+/* ---------- settings ---------- */
+function wipeAll(){
+  if(!confirm('Hapus semua data profil dan riwayat dari browser ini? Tindakan ini tidak bisa dibatalkan.')) return;
+  localStorage.removeItem(LS_PROFILE); localStorage.removeItem(LS_HISTORY);
+  resetWizard();
+  go('dashboard');
+}
+
+/* ---------- init ---------- */
+resetWizard();
+go('dashboard');
+</script>
+</body>
+</html>
